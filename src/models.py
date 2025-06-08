@@ -86,6 +86,7 @@ class FavoritesPlanet(db.Model):
     def serialize(self):
         return{
             "id": self.id,
+            "user_id": self.user_id,
             "planet": self.planet.serialize()
         }
 
@@ -100,6 +101,7 @@ class FavoritesCharacter(db.Model):
     def serialize(self):
         return{
             "id": self.id,
+            "user_id": self.user_id,
             "character": self.character.serialize()
         }
 

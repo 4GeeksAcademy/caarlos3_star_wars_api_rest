@@ -9,7 +9,7 @@ from flask_cors import CORS
 from utils import APIException, generate_sitemap
 from admin import setup_admin
 from sqlalchemy import select
-from models import db, User, Planets, Characters
+from models import db, User, Planets, Characters, FavoritesPlanet, FavoritesCharacter
 #from models import Person
 
 app = Flask(__name__)
@@ -109,6 +109,28 @@ def handle_get_character_from_id(character_id):
         "charcater": character.serialize()
     }
     return jsonify(response_body), 200
+
+
+@app.route('/users/favorite/<int:user_id>', methods=['GET'])
+def get_favorites_from_user_id(user_id):
+    get_favlist_for_planets = select(FavoritesPlanet).where(FavoritesPlanet.user_id == user_id)
+    favorites_planets = db.session.execute(get_favlist_for_planets).scalars().all()
+
+    get_favlist_for_character = select(FavoritesCharacter).where(FavoritesCharacter.user_id == user_id)
+    favorites_character = db.session.execute(get_favlist_for_character).scalars().all()
+
+    planets_favorite_list = [favorites.serialize() for favorites in favorites_planets]
+    characters_favorite_list = [favorites.serialize() for favorites in favorites_character]
+
+    response = {
+        "favorite_planets": planets_favorite_list,
+        "favorite_character": characters_favorite_list
+    }
+
+    return jsonify(response), 200
+
+
+
 
 
 
