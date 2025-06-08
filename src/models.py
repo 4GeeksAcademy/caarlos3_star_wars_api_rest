@@ -9,7 +9,7 @@ class User(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     email: Mapped[str] = mapped_column( String(120), unique=True, nullable=False)
     password: Mapped[str] = mapped_column(nullable=False)
-    is_active: Mapped[bool] = mapped_column(Boolean(), nullable=False)
+    is_active: Mapped[bool] = mapped_column(Boolean(), nullable=False, default=True)
     favorites_planet: Mapped[list["FavoritesPlanet"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     favorites_character: Mapped[list["FavoritesCharacter"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     favorites_vehicle: Mapped[list["FavoritesVehicle"]] = relationship(back_populates="user", cascade="all, delete-orphan")

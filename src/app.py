@@ -8,7 +8,8 @@ from flask_swagger import swagger
 from flask_cors import CORS
 from utils import APIException, generate_sitemap
 from admin import setup_admin
-from models import db, User
+from sqlalchemy import select
+from models import db, User, Planets, Characters
 #from models import Person
 
 app = Flask(__name__)
@@ -36,14 +37,81 @@ def handle_invalid_usage(error):
 def sitemap():
     return generate_sitemap(app)
 
-@app.route('/user', methods=['GET'])
-def handle_hello():
+@app.route('/users', methods=['GET'])
+def handle_get_users():
 
+    all_users = db.session.execute(select(User)).scalars().all()
+    all_users = list(map(lambda user: user.serialize(), all_users))
     response_body = {
-        "msg": "Hello, this is your GET /user response "
+        "users": all_users
     }
 
     return jsonify(response_body), 200
+
+@app.route('/users', methods=['POST'])
+def handle_create_users():
+    body = request.get_json()
+
+    if 'email' not in body or 'password' not in body:
+        return jsonify( {"err": "Datos requeridos no incluidos"}), 400
+    
+    user = User()
+    user.email = body['email']
+    user.password = body['password']
+
+    db.session.add(user)
+    db.session.commit()
+
+
+    return jsonify({"ok": True}), 200
+
+@app.route('/planets', methods=['GET'])
+def handle_get_planets():
+
+    all_planets = db.session.execute(select(Planets)).scalars().all()
+    all_planets = list(map(lambda planets: planets.serialize(), all_planets))
+    response_body = {
+        "users": all_planets
+    }
+
+    return jsonify(response_body), 200
+
+@app.route('/planets/<int:planet_id>', methods=['GET'])
+def handle_get_planet_from_id(planet_id):
+    planet = db.session.get(Planets, planet_id)
+    if planet is None:
+        return jsonify({"err": "Planet not found"}), 404
+    
+    response_body={
+        "planet": planet.serialize()
+    }
+    return jsonify(response_body), 200
+
+
+@app.route('/characters', methods=['GET'])
+def handle_get_characters():
+
+    all_characters = db.session.execute(select(Characters)).scalars().all()
+    all_characters = list(map(lambda characters: characters.serialize(), all_characters))
+    response_body = {
+        "users": all_characters
+    }
+
+    return jsonify(response_body), 200
+
+@app.route('/characters/<int:character_id>', methods=['GET'])
+def handle_get_character_from_id(character_id):
+    character = db.session.get(Characters, character_id)
+    if character is None:
+        return jsonify({"err": "Planet not found"}), 404
+    
+    response_body={
+        "charcater": character.serialize()
+    }
+    return jsonify(response_body), 200
+
+
+
 
 # this only runs if `$ python src/app.py` is executed
 if __name__ == '__main__':
