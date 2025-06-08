@@ -111,7 +111,7 @@ def handle_get_character_from_id(character_id):
     return jsonify(response_body), 200
 
 
-@app.route('/users/favorite/<int:user_id>', methods=['GET'])
+@app.route('/users/favorites/<int:user_id>', methods=['GET'])
 def get_favorites_from_user_id(user_id):
     get_favlist_for_planets = select(FavoritesPlanet).where(FavoritesPlanet.user_id == user_id)
     favorites_planets = db.session.execute(get_favlist_for_planets).scalars().all()
@@ -130,6 +130,96 @@ def get_favorites_from_user_id(user_id):
     return jsonify(response), 200
 
 
+@app.route('/favorites/planet/<int:user_id>', methods=['POST'])
+def add_favorite_planet(user_id):
+    body = request.get_json()
+    planet_id = body.get('planet_id')
+
+    if not planet_id:
+        return jsonify(
+            {'err': 'Planet not found'}, 400
+        )
+    
+    is_favorited = select(FavoritesPlanet).where(
+        (FavoritesPlanet.user_id == user_id) & (FavoritesPlanet.planet_from_id == planet_id)
+    )
+
+    its_exist= db.session.execute(is_favorited).scalars().first()
+
+    if its_exist:
+        return jsonify({'msg': 'Ya añadido en favoritos'}), 400
+
+
+    favorite = FavoritesPlanet(user_id=user_id, planet_from_id = planet_id)
+
+    db.session.add(favorite)
+    db.session.commit()
+
+    return jsonify({"msg": "Planeta agregado a favoritos"}), 201
+
+
+@app.route('/favorites/planet/<int:user_id>/<int:planet_id>', methods=['DELETE'])
+def delete_planet_favorite(user_id, planet_id):
+    search_in_list = select(FavoritesPlanet).where(
+        (FavoritesPlanet.user_id == user_id) & (FavoritesPlanet.planet_from_id == planet_id)
+    )
+
+    its_exist_in_list = db.session.execute(search_in_list).scalars().first()
+
+    if not its_exist_in_list:
+        return jsonify({'err': 'Favorite not search'}), 404
+    
+    db.session.delete(its_exist_in_list)
+    db.session.commit()
+
+    return jsonify({'ok': 'Favorite eliminated'}), 200
+
+
+@app.route('/favorites/character/<int:user_id>', methods=['POST'])
+def add_favorite_character(user_id):
+    body = request.get_json()
+    character_id = body.get('character_id')
+
+    if not character_id:
+        return jsonify(
+            {'err': 'Character not found'}, 400
+        )
+    
+    is_favorited = select(FavoritesCharacter).where(
+        (FavoritesCharacter.user_id == user_id) & (FavoritesCharacter.character_from_id == character_id)
+    )
+
+    its_exist= db.session.execute(is_favorited).scalars().first()
+
+    if its_exist:
+        return jsonify({'msg': 'Ya añadido en favoritos'}), 400
+
+
+    favorite = FavoritesCharacter(user_id=user_id, character_from_id = character_id)
+
+    db.session.add(favorite)
+    db.session.commit()
+
+    return jsonify({"msg": "Character agregado a favoritos"}), 201
+
+
+
+
+@app.route('/favorites/character/<int:user_id>/<int:character_id>', methods=['DELETE'])
+def delete_character_favorite(user_id, character_id):
+    search_in_list = select(FavoritesCharacter).where(
+        (FavoritesCharacter.user_id == user_id) & (FavoritesCharacter.character_from_id == character_id)
+    )
+
+    its_exist_in_list = db.session.execute(search_in_list).scalars().first()
+
+    if not its_exist_in_list:
+        return jsonify({'err': 'Favorite not search'}), 404
+    
+    db.session.delete(its_exist_in_list)
+    db.session.commit()
+
+    return jsonify({'ok': 'Favorite eliminated'}), 200   
 
 
 
